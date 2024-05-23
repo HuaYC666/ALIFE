@@ -13,17 +13,18 @@ import copy
 
 device = torch.device("cuda:0")
 device_cpu = torch.device("cpu")
-expr_train_addr = "Address of training gene expression data"   #for example: "/home/usr/expr_train.txt"
-clin_train_addr = "Address of training clinic data"  #for example: "/home/usr/clin_train.txt"
-expr_test_addr = "Address of testing gene expression data"  #for example: "/home/usr/expr_test.txt"
-clin_test_addr = "Address of testing clinic data"  #for example: "/home/usr/clin_test.txt"
-mask_addr = "Address of pathway information"  #for example: "/home/usr/pathway_matrix_HALLMARK.csv"
-save_addr = "Address of saving model output"  #for example: "/home/usr"
+expr_train_addr = "Address of training gene expression data"
+clin_train_addr = "Address of training clinic data"
+expr_test_addr = "Address of testing gene expression data"
+clin_test_addr = "Address of testing clinic data"
+mask_addr = "Address of pathway information"
+save_addr = "Address of saving model output"
 n_pathway_embeding = 220
-num_epochs_ae = 4000
+num_epochs_ae = 30
 batch_size_ae = 100
 lr_ae = 0.01
-num_epochs_sup = 2000
+
+num_epochs_sup = 100
 batch_size_sup = 100
 lr_sup = 0.0001
 
@@ -481,22 +482,22 @@ expr_train_tensor_ori_order = copy.deepcopy(expr_train_tensor)
 clin_train = pd.read_table(
     clin_train_addr, sep="\t", engine='python')
 clin_train_np = np.array(clin_train)
-train_rfs = list(clin_train_np[:, 2])
-train_outcome = list(clin_train_np[:, 1])
+train_os = list(clin_train_np[:, 1])
+train_outcome = list(clin_train_np[:, 0])
 for i in range(len(train_outcome)):
     train_outcome[i] = int(train_outcome[i])
 
 # sort gene expression arrays and clinical arrays in chronological order
-train_rfs_order = list(np.argsort(train_rfs))
+train_os_order = list(np.argsort(train_os))
 nsample, ngene = expr_train_tensor.shape
 expr_train_ordered = torch.zeros([nsample, ngene], dtype=torch.float32)
 train_outcome_ordered = []
-for i in range(len(train_rfs_order)):
-    expr_train_ordered[i, :] = expr_train_tensor[train_rfs_order[i], :]
-    train_outcome_ordered += [train_outcome[train_rfs_order[i]]]
+for i in range(len(train_os_order)):
+    expr_train_ordered[i, :] = expr_train_tensor[train_os_order[i], :]
+    train_outcome_ordered += [train_outcome[train_os_order[i]]]
 train_outcome = train_outcome_ordered
 expr_train_tensor = expr_train_ordered
-train_rfs.sort()
+train_os.sort()
 event_id = []
 for i in range(len(train_outcome)):
     if train_outcome[i] == 1:
@@ -515,8 +516,8 @@ expr_test_tensor = standard_expr_mat(expr_test_np, gene_name, all_mrna_names)
 clin_test = pd.read_table(
     clin_test_addr, sep="\t", engine='python')
 clin_test_np = np.array(clin_test)
-test_rfs = list(clin_test_np[:, 2])
-test_outcome = list(clin_test_np[:, 1])
+test_os = list(clin_test_np[:, 1])
+test_outcome = list(clin_test_np[:, 0])
 for i in range(len(test_outcome)):
     test_outcome[i] = int(test_outcome[i])
 
@@ -547,7 +548,7 @@ for model_id in n_model:
     myloss_train = []
     for epoch in range(num_epochs):
         mrna_list, _, _, _ = batch_construct(expr_train_tensor,
-                                             train_rfs, train_outcome, batch_size, event_id, epoch)
+                                             train_os, train_outcome, batch_size, event_id, epoch)
         myloss = []
         for iter in range(len(mrna_list)):
             optimizer_mrna.zero_grad()
@@ -610,7 +611,7 @@ for model_id in n_model:
     model.train()
     for epoch in range(num_epochs):
         mrna_list, OStime_list, OS_list, event_id_list = batch_construct(expr_train_tensor,
-                                                                         train_rfs, train_outcome,
+                                                                         train_os, train_outcome,
                                                                          batch_size, event_id, epoch)
         have_event = True
         # Detecting the occurrence of events
@@ -632,7 +633,7 @@ for model_id in n_model:
             risk = risk - torch.median(risk)
             risk_train = risk.tolist()
             outcome_train = train_outcome
-            os_train = train_rfs
+            os_train = train_os
 
             loss, x_exp, x_tril_mat_rowsum, x_tril_mat_logrowsum, x_risk, x_tril_mat = criterion(
                 risk)
@@ -686,7 +687,7 @@ for model_id in n_model:
 
     risk_train = output_list
     outcome_train = train_outcome
-    os_train = train_rfs
+    os_train = train_os
 
     # make data frame of predicted risk
     output_train = [risk_train, outcome_train, os_train]
@@ -743,7 +744,7 @@ for model_id in n_model:
 
     risk_test = output_list
     outcome_test = test_outcome
-    os_test = test_rfs
+    os_test = test_os
 
 
     # 制作训练集和测试集相关指标表格
