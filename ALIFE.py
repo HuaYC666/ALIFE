@@ -20,11 +20,11 @@ clin_test_addr = "Address of testing clinic data"
 mask_addr = "Address of pathway information"
 save_addr = "Address of saving model output"
 n_pathway_embeding = 220
-num_epochs_ae = 30
+num_epochs_ae = 4000
 batch_size_ae = 100
 lr_ae = 0.01
 
-num_epochs_sup = 100
+num_epochs_sup = 2000
 batch_size_sup = 100
 lr_sup = 0.0001
 
