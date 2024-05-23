@@ -13,18 +13,17 @@ import copy
 
 device = torch.device("cuda:0")
 device_cpu = torch.device("cpu")
-expr_train_addr = "Address of training gene expression data"
-clin_train_addr = "Address of training clinic data"
-expr_test_addr = "Address of testing gene expression data"
-clin_test_addr = "Address of testing clinic data"
-mask_addr = "Address of pathway information"
-save_addr = "Address of saving model output"
+expr_train_addr = "Address of training gene expression data"   #for example: "/home/usr/expr_train.txt"
+clin_train_addr = "Address of training clinic data"  #for example: "/home/usr/clin_train.txt"
+expr_test_addr = "Address of testing gene expression data"  #for example: "/home/usr/expr_test.txt"
+clin_test_addr = "Address of testing clinic data"  #for example: "/home/usr/clin_test.txt"
+mask_addr = "Address of pathway information"  #for example: "/home/usr/pathway_matrix_HALLMARK.csv"
+save_addr = "Address of saving model output"  #for example: "/home/usr"
 n_pathway_embeding = 220
-num_epochs_ae = 30
+num_epochs_ae = 4000
 batch_size_ae = 100
 lr_ae = 0.01
-
-num_epochs_sup = 100
+num_epochs_sup = 2000
 batch_size_sup = 100
 lr_sup = 0.0001
 
