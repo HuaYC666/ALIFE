@@ -747,7 +747,7 @@ for model_id in n_model:
     os_test = test_os
 
 
-    # 制作训练集和测试集相关指标表格
+    # Create tables of relevant indicators for training and testing sets
     output_test = [risk_test, outcome_test, os_test]
 
     output_test = np.array(output_test)
@@ -761,7 +761,7 @@ for model_id in n_model:
     data_test.to_csv(
         data_test_addr, index=True)
 
-    # 保存注意力矩阵
+    # Save attention matrix
     attention_pathway = atten_test[:, :, 0, 1:]
     attention_pathway_mean = torch.mean(attention_pathway, 1)
     attention_pathway_mean = attention_pathway_mean.detach().to(device_cpu).numpy()
